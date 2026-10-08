@@ -1,0 +1,92 @@
+{
+  "SQLi": {
+    "fr": {
+      "incident": "Tentatives SQLi detectees sur des pages publiques. Le risque principal est l'acces non autorise aux donnees, le contournement de l'authentification ou la modification de la base.",
+      "responses": [
+        "Bloquer rapidement les IP sources suspectes au niveau firewall ou WAF.",
+        "Verifier les logs applicatifs et SQL autour des URLs ciblees.",
+        "Controler les comptes et sessions administrateur apres les tentatives detectees."
+      ],
+      "improvements": [
+        "Utiliser des requetes preparees pour toutes les requetes SQL.",
+        "Valider les entrees cote serveur avec des listes de formats attendus.",
+        "Desactiver les erreurs SQL visibles et journaliser les erreurs cote serveur.",
+        "Ajouter des regles WAF SQLi pour les pages login, search, product et track_order."
+      ]
+    },
+    "en": {
+      "incident": "SQL injection attempts were detected on public pages. The main risk is unauthorized data access, authentication bypass, or database modification.",
+      "responses": [
+        "Block suspicious source IPs quickly at firewall or WAF level.",
+        "Review application and SQL logs around targeted URLs.",
+        "Check administrator accounts and sessions after the detected attempts."
+      ],
+      "improvements": [
+        "Use prepared statements for every SQL query.",
+        "Validate server-side inputs with strict expected formats.",
+        "Disable visible SQL errors and log errors server-side.",
+        "Add WAF SQLi rules for login, search, product and track_order pages."
+      ]
+    }
+  },
+  "XSS": {
+    "fr": {
+      "incident": "Tentatives XSS detectees dans des champs utilisateurs. Le risque principal est l'execution de JavaScript dans le navigateur, le vol de session ou la compromission d'un administrateur.",
+      "responses": [
+        "Supprimer ou neutraliser les contenus suspects stockes en base.",
+        "Verifier si un administrateur ou un utilisateur a consulte la page infectee.",
+        "Invalider les sessions si un payload stocke a pu etre execute."
+      ],
+      "improvements": [
+        "Encoder toutes les sorties HTML, attributs, URLs et JavaScript.",
+        "Filtrer les balises et handlers dangereux avant stockage.",
+        "Ajouter des cookies HttpOnly et Secure pour les sessions.",
+        "Mettre en place une Content Security Policy adaptee au site."
+      ]
+    },
+    "en": {
+      "incident": "XSS attempts were detected in user-controlled fields. The main risk is JavaScript execution in the browser, session theft, or administrator compromise.",
+      "responses": [
+        "Remove or neutralize suspicious stored content from the database.",
+        "Check whether an administrator or user viewed the infected page.",
+        "Invalidate sessions if a stored payload may have executed."
+      ],
+      "improvements": [
+        "Encode all HTML, attribute, URL and JavaScript outputs.",
+        "Filter dangerous tags and event handlers before storage.",
+        "Use HttpOnly and Secure flags on session cookies.",
+        "Deploy a Content Security Policy adapted to the site."
+      ]
+    }
+  },
+  "BruteForce": {
+    "fr": {
+      "incident": "Tentatives Brute Force detectees sur la page de connexion. Le risque principal est la compromission d'un compte par essais repetes de mots de passe.",
+      "responses": [
+        "Bloquer temporairement les IP sources qui depassent les seuils.",
+        "Verifier si une tentative a reussi apres plusieurs echecs.",
+        "Forcer la reinitialisation du mot de passe des comptes cibles si necessaire."
+      ],
+      "improvements": [
+        "Ajouter un rate limiting sur login.php.",
+        "Activer un verrouillage temporaire apres plusieurs echecs.",
+        "Ajouter un CAPTCHA apres plusieurs tentatives.",
+        "Mettre en place une authentification forte pour les comptes admin."
+      ]
+    },
+    "en": {
+      "incident": "Brute Force attempts were detected on the login page. The main risk is account compromise through repeated password guessing.",
+      "responses": [
+        "Temporarily block source IPs that exceed thresholds.",
+        "Check whether an attempt succeeded after multiple failures.",
+        "Force password reset for targeted accounts when needed."
+      ],
+      "improvements": [
+        "Add rate limiting on login.php.",
+        "Enable temporary lockout after repeated failures.",
+        "Add CAPTCHA after several attempts.",
+        "Use strong authentication for administrator accounts."
+      ]
+    }
+  }
+}

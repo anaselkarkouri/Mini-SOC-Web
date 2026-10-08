@@ -1,0 +1,5 @@
+# Mini-SOC M1 local lab
+php_value display_errors 1
+php_value display_startup_errors 1
+php_value default_charset UTF-8
+DirectoryIndex index.php

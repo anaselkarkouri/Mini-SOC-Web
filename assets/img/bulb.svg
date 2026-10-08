@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="675" viewBox="0 0 900 675">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#f79009"/><stop offset="1" stop-color="#12b76a"/></linearGradient>
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="22" stdDeviation="20" flood-opacity=".22"/></filter>
+  </defs>
+  <rect width="900" height="675" rx="42" fill="url(#g)"/>
+  <circle cx="730" cy="120" r="170" fill="rgba(255,255,255,.22)"/>
+  <circle cx="130" cy="610" r="210" fill="rgba(255,255,255,.16)"/>
+  <path d="M450 135c-92 0-166 74-166 166 0 58 30 109 75 139 20 13 28 33 28 55h126c0-22 9-42 28-55 45-30 75-81 75-139 0-92-74-166-166-166z" fill="#fff" filter="url(#s)"/><rect x="385" y="500" width="130" height="42" rx="14" fill="#fff"/><rect x="402" y="552" width="96" height="30" rx="10" fill="#fff"/>
+  <text x="70" y="600" font-family="Inter,Arial,sans-serif" font-size="42" font-weight="800" fill="white">SmartColor</text>
+</svg>
