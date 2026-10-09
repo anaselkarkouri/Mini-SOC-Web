@@ -1,0 +1,6 @@
+<!-- Adapter le chemin au volume runtime monté sur l'hôte du gestionnaire. -->
+<localfile>
+  <location>/home/labgrc/minisoc-20261009/runtime/events.ndjson</location>
+  <log_format>json</log_format>
+  <only-future-events>no</only-future-events>
+</localfile>

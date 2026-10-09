@@ -1,0 +1,27 @@
+{
+  "scope": "search.php, login.php, review.php/product.php",
+  "hardened": true,
+  "checks": [
+    {
+      "scenario": "recherche légitime fonctionnelle",
+      "passed": true
+    },
+    {
+      "scenario": "XSS réfléchie: réponse conforme au mode",
+      "passed": true
+    },
+    {
+      "scenario": "SQLi recherche: injection neutralisée en mode corrigé",
+      "passed": true
+    },
+    {
+      "scenario": "SQLi connexion: contournement refusé en mode corrigé",
+      "passed": true
+    },
+    {
+      "scenario": "XSS stockée: affichage encodé en mode corrigé",
+      "passed": true
+    }
+  ],
+  "limit": "Réponses HTTP uniquement; pas de mesure exhaustive de sécurité ni de preuve d’exécution JavaScript."
+}

@@ -13,4 +13,20 @@ jobs:
       - run: python -m pip install -r mini_siem/requirements.txt
       - run: python -m unittest -v test_detection
         working-directory: mini_siem
+      - run: python -m unittest discover -s tests -p test_regressions.py -v
       - run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/prepare_env.py
+      - run: docker compose up -d --build --wait db web siem
+      - run: docker compose exec -T siem python tests/integration_lab.py
+      - run: docker compose exec -T siem python tests/remediation_lab.py
+      - run: MINISOC_HARDENED=1 docker compose up -d --no-deps --wait web
+      - run: docker compose exec -T -e EXPECTED_HARDENED=1 siem python tests/remediation_lab.py
+      - if: always()
+        run: docker compose down

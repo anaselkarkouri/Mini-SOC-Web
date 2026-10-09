@@ -14,7 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     }
     $id = (int)($_POST['id'] ?? 0);
     $status = (string)($_POST['status'] ?? '');
-    soc_update_alert_status($id, $status);
+    if (!soc_update_alert_status($id, $status)) {
+        http_response_code(400);
+        exit('Modification refusée : alerte, statut ou justification invalide.');
+    }
     header('Location: ' . soc_index_url($filters, ['id' => $id]));
     exit;
 }
@@ -265,6 +268,7 @@ soc_shell_start(soc_t('dashboard_title'), 'overview');
                 <form class="status-form" method="post">
                     <?php soc_csrf_field(); ?>
                     <input type="hidden" name="action" value="update_status">
+<label>Justification / Investigation<textarea name="note" maxlength="1000" rows="3" placeholder="Observations, preuve, décision et éléments manquants"></textarea></label>
                     <input type="hidden" name="id" value="<?= soc_e($selectedAlert['id']) ?>">
                     <label for="status"><?= soc_e(soc_t('status')) ?></label>
                     <div>

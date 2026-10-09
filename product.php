@@ -11,7 +11,9 @@ $productSql = "SELECT p.id, p.name, p.price, p.old_price, p.image, p.short_descr
                FROM products p
                LEFT JOIN categories c ON c.id = p.category_id
                WHERE p.id = $id";
-$product = db_one($productSql);
+$product = MINISOC_HARDENED
+    ? (db_prepared_rows(str_replace('WHERE p.id = '.$id, 'WHERE p.id = ?', $productSql), 'i', [(int)$id])[0] ?? null)
+    : db_one($productSql);
 
 $reviews = [];
 if ($product) {
@@ -19,7 +21,9 @@ if ($product) {
                    FROM reviews
                    WHERE product_id = $id
                    ORDER BY created_at DESC";
-    $reviews = db_all($reviewsSql);
+    $reviews = MINISOC_HARDENED
+        ? db_prepared_rows('SELECT id,author_name,rating,comment,created_at FROM reviews WHERE product_id=? ORDER BY created_at DESC', 'i', [(int)$id])
+        : db_all($reviewsSql);
 }
 ?>
 <section class="page-title">
@@ -80,10 +84,10 @@ if ($product) {
                     <div class="review">
                         <div class="review-head">
                             <!-- Vulnérabilité volontaire : author_name et comment sont affichés sans encodage. -->
-                            <strong><?= $review['author_name'] ?></strong>
+                            <strong><?= MINISOC_HARDENED ? e($review['author_name']) : $review['author_name'] ?></strong>
                             <span class="stars"><?= str_repeat('★', (int)$review['rating']) ?></span>
                         </div>
-                        <p><?= $review['comment'] ?></p>
+                        <p><?= MINISOC_HARDENED ? e($review['comment']) : $review['comment'] ?></p>
                         <small><?= e($review['created_at']) ?></small>
                     </div>
                 <?php endforeach; ?>

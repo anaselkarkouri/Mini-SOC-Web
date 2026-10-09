@@ -16,6 +16,7 @@ if (!$conn) {
 }
 
 mysqli_set_charset($conn, 'utf8mb4');
+mysqli_query($conn, "SET time_zone='+00:00'");
 
 function sql_debug_box(string $sql): void
 {
@@ -57,5 +58,20 @@ function db_all(string $sql): array
             $rows[] = $row;
         }
     }
+    return $rows;
+}
+
+function db_prepared_rows(string $sql, string $types, array $values): array
+{
+    global $conn;
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt || !mysqli_stmt_bind_param($stmt, $types, ...$values) || !mysqli_stmt_execute($stmt)) {
+        if ($stmt) mysqli_stmt_close($stmt);
+        error_log('Mini-SOC: échec de requête préparée');
+        return [];
+    }
+    $result = mysqli_stmt_get_result($stmt);
+    $rows = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+    mysqli_stmt_close($stmt);
     return $rows;
 }

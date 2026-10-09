@@ -1,0 +1,73 @@
+{
+  "checks": [
+    {
+      "scenario": "navigation HTTP avec curl",
+      "passed": true
+    },
+    {
+      "scenario": "traitement du lot réel",
+      "passed": true
+    },
+    {
+      "scenario": "aucune alerte pour navigation curl normale",
+      "passed": true
+    },
+    {
+      "scenario": "SQLi et XSS correctement distingués",
+      "passed": true
+    },
+    {
+      "scenario": "brute force sur échecs réels",
+      "passed": true
+    },
+    {
+      "scenario": "mots de passe absents des données conservées",
+      "passed": true
+    },
+    {
+      "scenario": "identifiants et raisons de règles",
+      "passed": true
+    },
+    {
+      "scenario": "export JSON sans le secret",
+      "passed": true
+    },
+    {
+      "scenario": "console protégée sans session",
+      "passed": true
+    },
+    {
+      "scenario": "connexion analyste",
+      "passed": true
+    },
+    {
+      "scenario": "CSRF absent refusé",
+      "passed": true
+    },
+    {
+      "scenario": "clôture sans justification refusée",
+      "passed": true
+    },
+    {
+      "scenario": "qualification via API",
+      "passed": true
+    },
+    {
+      "scenario": "justification et historique visibles",
+      "passed": true
+    },
+    {
+      "scenario": "identifiant inexistant refusé",
+      "passed": true
+    },
+    {
+      "scenario": "moteur sans droit de modifier les comptes boutique",
+      "passed": true
+    },
+    {
+      "scenario": "répertoires privés non servis",
+      "passed": true
+    }
+  ],
+  "count": 17
+}

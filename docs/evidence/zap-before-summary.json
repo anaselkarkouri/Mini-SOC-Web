@@ -1,0 +1,68 @@
+{
+  "zap_version": "2.17.0",
+  "mode": "before",
+  "scope": "http://web/search.php; règles actives 40012 et 40018",
+  "raw_sha256": "e0b02ec61efaf7d823c51323d177435e1ffa5e8b4c4ccd5873ba14d6554d16ba",
+  "alerts": [
+    {
+      "plugin_id": "40012",
+      "name": "Cross Site Scripting (Reflected)",
+      "risk": "High (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "40018",
+      "name": "SQL Injection - MySQL",
+      "risk": "High (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10038",
+      "name": "Content Security Policy (CSP) Header Not Set",
+      "risk": "Medium (High)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10020",
+      "name": "Missing Anti-clickjacking Header",
+      "risk": "Medium (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10010",
+      "name": "Cookie No HttpOnly Flag",
+      "risk": "Low (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10037",
+      "name": "Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s)",
+      "risk": "Low (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10036",
+      "name": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+      "risk": "Low (High)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10021",
+      "name": "X-Content-Type-Options Header Missing",
+      "risk": "Low (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10112",
+      "name": "Session Management Response Identified",
+      "risk": "Informational (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10031",
+      "name": "User Controllable HTML Element Attribute (Potential XSS)",
+      "risk": "Informational (Low)",
+      "instances": 1
+    }
+  ]
+}

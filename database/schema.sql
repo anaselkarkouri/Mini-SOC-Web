@@ -9,6 +9,12 @@ CREATE DATABASE IF NOT EXISTS minisoc_shop
 USE minisoc_shop;
 
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS alert_audit;
+DROP TABLE IF EXISTS soc_alert_reads;
+DROP TABLE IF EXISTS soc_login_attempts;
+DROP TABLE IF EXISTS siem_health;
+DROP TABLE IF EXISTS alerts;
+DROP TABLE IF EXISTS threat_score;
 DROP TABLE IF EXISTS http_logs;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
@@ -88,6 +94,7 @@ CREATE TABLE order_items (
 -- Module M2 : table de collecte des logs HTTP (Omar Babba)
 CREATE TABLE http_logs (
     id            INT AUTO_INCREMENT PRIMARY KEY,
+    event_id      CHAR(32) NOT NULL UNIQUE,
     timestamp     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP  COMMENT 'Date et heure de la requete',
     ip_source     VARCHAR(45)   NOT NULL                            COMMENT 'Adresse IP source de l utilisateur ou attaquant',
     method        VARCHAR(10)   NOT NULL                            COMMENT 'Methode HTTP : GET ou POST',
@@ -95,7 +102,9 @@ CREATE TABLE http_logs (
     params        TEXT                                              COMMENT 'Parametres GET et POST en JSON (prefixes GET_ / POST_)',
     user_agent    VARCHAR(512)                                      COMMENT 'Navigateur ou outil utilise (sqlmap, Hydra, curl, etc.)',
     response_code SMALLINT      NOT NULL DEFAULT 200               COMMENT 'Code HTTP retourne par l application',
-    processed     TINYINT(1)    NOT NULL DEFAULT 0                  COMMENT '0 = non analyse, 1 = traite par le Mini-SIEM'
+    processed     TINYINT(1)    NOT NULL DEFAULT 0                  COMMENT '0 = non analyse, 1 = traite par le Mini-SIEM',
+    INDEX idx_http_pending (processed,timestamp,id),
+    INDEX idx_http_login (ip_source,timestamp)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -140,6 +149,10 @@ INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
 CREATE TABLE alerts (
     id                   INT AUTO_INCREMENT PRIMARY KEY,
     timestamp            DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP  COMMENT 'Date et heure de detection de l attaque',
+    event_timestamp      DATETIME NOT NULL,
+    rule_id              VARCHAR(30) NOT NULL,
+    rule_version         VARCHAR(30) NOT NULL,
+    confidence           VARCHAR(20) NOT NULL,
     log_id               INT           NOT NULL                            COMMENT 'Reference vers http_logs.id (log source)',
     attack_type          VARCHAR(100)  NOT NULL                            COMMENT 'Type : SQL Injection | Cross-Site Scripting | Brute Force',
     severity             VARCHAR(20)   NOT NULL                            COMMENT 'Gravite : LOW | MEDIUM | HIGH | CRITICAL',
@@ -152,6 +165,7 @@ CREATE TABLE alerts (
     mitre_technique      VARCHAR(200)                                      COMMENT 'Technique MITRE ex: Exploit Public-Facing Application',
     recommended_response TEXT                                              COMMENT 'Action recommandee pour traiter l attaque',
     status               VARCHAR(30)   NOT NULL DEFAULT 'nouveau'          COMMENT 'Statut : nouveau | en_cours | resolu | faux_positif',
+    INDEX idx_alert_time_status (timestamp,status),
     UNIQUE KEY uniq_alert_log_attack_ip (log_id, attack_type, source_ip)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
  
@@ -164,3 +178,12 @@ CREATE TABLE threat_score (
     score_total  INT         NOT NULL DEFAULT 0                  COMMENT 'Score cumulatif total depuis le debut'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
  
+
+CREATE TABLE siem_health (id INT PRIMARY KEY,last_cycle DATETIME NOT NULL,rule_version VARCHAR(30) NOT NULL);
+CREATE TABLE alert_audit (
+ id INT AUTO_INCREMENT PRIMARY KEY,alert_id INT NOT NULL,changed_at DATETIME NOT NULL,
+ actor VARCHAR(80) NOT NULL,old_status VARCHAR(30) NOT NULL,new_status VARCHAR(30) NOT NULL,
+ note VARCHAR(1000) NOT NULL,INDEX idx_audit_alert (alert_id,changed_at));
+CREATE TABLE soc_alert_reads (alert_id INT PRIMARY KEY,read_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE soc_login_attempts (ip_hash VARCHAR(64) PRIMARY KEY,attempts INT NOT NULL DEFAULT 0,
+ last_attempt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,locked_until DATETIME NULL);

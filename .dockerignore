@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+!.env.example
+runtime
+outputs_minisoc_audit_20261009
+__pycache__
+*.log
+*.pid
+docs/Rapport_Mini_SOC_Web.pdf
+docs/media
+artifacts

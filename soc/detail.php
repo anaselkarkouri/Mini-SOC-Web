@@ -11,7 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         exit('CSRF token invalid');
     }
     $status = (string)($_POST['status'] ?? '');
-    soc_update_alert_status($id, $status);
+    if (!soc_update_alert_status($id, $status)) {
+        http_response_code(400);
+        exit('Modification refusée : alerte, statut ou justification invalide.');
+    }
     header('Location: detail.php?id=' . urlencode((string)$id));
     exit;
 }
@@ -80,11 +83,20 @@ soc_shell_start(soc_t('detail_title'), 'alerts');
             </article>
         <?php endif; ?>
 
+        <article class="panel-card detail-wide">
+            <h2>Historique des décisions</h2>
+            <?php foreach (soc_db_select('SELECT changed_at,actor,old_status,new_status,note FROM alert_audit WHERE alert_id=? ORDER BY id DESC LIMIT 30','i',[$id]) as $decision): ?>
+                <p><strong><?= soc_e($decision['changed_at'].' UTC - '.$decision['actor']) ?></strong><br>
+                <?= soc_e($decision['old_status'].' → '.$decision['new_status']) ?><br><?= soc_e($decision['note']) ?></p>
+            <?php endforeach; ?>
+            <p>Journal applicatif; son intégrité dépend des droits d’accès à la base.</p>
+        </article>
         <aside class="panel-card status-panel">
             <h2><?= soc_e(soc_t('status')) ?></h2>
             <form class="status-form stacked" method="post">
                 <?php soc_csrf_field(); ?>
                 <input type="hidden" name="action" value="update_status">
+<label>Justification / Investigation<textarea name="note" maxlength="1000" rows="3" placeholder="Observations, preuve, décision et éléments manquants"></textarea></label>
                 <input type="hidden" name="id" value="<?= soc_e($alert['id']) ?>">
                 <label for="status"><?= soc_e(soc_t('change_status')) ?></label>
                 <select id="status" name="status">

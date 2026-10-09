@@ -17,7 +17,15 @@ $comment = $_POST['comment'] ?? '';
 $sql = "INSERT INTO reviews (product_id, author_name, rating, comment, created_at)
         VALUES ($productId, '$author', $rating, '$comment', NOW())";
 
-$result = db_query($sql);
+if (MINISOC_HARDENED) {
+    $productId = (int)$productId;
+    $rating = max(1, min(5, (int)$rating));
+    $stmt = mysqli_prepare($conn, 'INSERT INTO reviews(product_id,author_name,rating,comment,created_at) VALUES(?,?,?,?,NOW())');
+    $result = $stmt && mysqli_stmt_bind_param($stmt, 'isis', $productId,$author,$rating,$comment) && mysqli_stmt_execute($stmt);
+    if ($stmt) mysqli_stmt_close($stmt);
+} else {
+    $result = db_query($sql);
+}
 
 if ($result) {
     header('Location: product.php?id=' . $productId . '#reviews');

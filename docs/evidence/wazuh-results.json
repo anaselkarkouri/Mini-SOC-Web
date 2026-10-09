@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "wazuh_version": "4.14.8",
+  "source": "HTTP réel -> MariaDB -> moteur -> NDJSON -> Wazuh manager",
+  "events": 8,
+  "custom_rules_seen": [
+    "110101",
+    "110102",
+    "110104"
+  ],
+  "normal_request_has_custom_alert": false,
+  "secrets_fixture_absent": true,
+  "correlation_by_event_id": [
+    {
+      "event_id": "8595aeeecc3aaabe6c769638119dba52",
+      "rule_id": "110102"
+    },
+    {
+      "event_id": "35bf2d77911e68fefdceea8ce30b249b",
+      "rule_id": "110104"
+    },
+    {
+      "event_id": "4980a0f9e8159b4ea849591df241e21f",
+      "rule_id": "110101"
+    }
+  ],
+  "scope": "Gestionnaire local seul; aucun indexeur ou dashboard Wazuh."
+}

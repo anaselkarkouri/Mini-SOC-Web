@@ -1,0 +1,50 @@
+{
+  "zap_version": "2.17.0",
+  "mode": "after",
+  "scope": "http://web/search.php; règles actives 40012 et 40018",
+  "raw_sha256": "e5bed88efa32c2db6f381f40b481bcc4ce0d5e794a3a8ac888800ecd991ee15b",
+  "alerts": [
+    {
+      "plugin_id": "10038",
+      "name": "Content Security Policy (CSP) Header Not Set",
+      "risk": "Medium (High)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10020",
+      "name": "Missing Anti-clickjacking Header",
+      "risk": "Medium (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10037",
+      "name": "Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s)",
+      "risk": "Low (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10036",
+      "name": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+      "risk": "Low (High)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10021",
+      "name": "X-Content-Type-Options Header Missing",
+      "risk": "Low (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10112",
+      "name": "Session Management Response Identified",
+      "risk": "Informational (Medium)",
+      "instances": 1
+    },
+    {
+      "plugin_id": "10031",
+      "name": "User Controllable HTML Element Attribute (Potential XSS)",
+      "risk": "Informational (Low)",
+      "instances": 1
+    }
+  ]
+}

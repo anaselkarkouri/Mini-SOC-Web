@@ -211,6 +211,7 @@
         '<form class="status-form" method="post">' +
             '<input type="hidden" name="csrf" value="' + escapeHtml(window.SOC_CSRF || '') + '">' +
             '<input type="hidden" name="action" value="update_status">' +
+            '<label>Justification / Investigation<textarea name="note" maxlength="1000" rows="3"></textarea></label>' +
             '<input type="hidden" name="id" value="' + escapeHtml(alert.id) + '">' +
             '<label for="status">' + escapeHtml(t('status', 'Statut')) + '</label>' +
             '<div><select id="status" name="status">' +

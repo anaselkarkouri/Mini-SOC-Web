@@ -21,3 +21,4 @@ settings.local.php
 *.pid
 work/
 data/*.local.json
+runtime/

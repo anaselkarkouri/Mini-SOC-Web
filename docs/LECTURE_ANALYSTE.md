@@ -1,6 +1,6 @@
 # Lire le Mini-SOC du point de vue de l'analyste
 
-Ce projet collectif EMSI relie des requêtes HTTP, des événements, des règles Python et un tableau de bord SOC. Il s'agit d'un laboratoire web de démonstration, pas d'un SOC de production. Cette fiche explique comment lire les résultats existants ; elle ne rapporte pas de nouveaux incidents ni de nouveaux tests de bout en bout.
+Ce projet collectif EMSI relie des requêtes HTTP, des événements, des règles Python et un tableau de bord SOC. Il s'agit d'un laboratoire web de démonstration, pas d'un SOC de production. Les extensions d'octobre 2026 ajoutent qualification tracée, intégration Wazuh et retests ciblés ; le [bilan de validation](VALIDATION_20261009.md) sépare leurs résultats de la démonstration historique.
 
 ## Le parcours d'un signal
 
@@ -28,7 +28,9 @@ Avant une action, conserver les éléments utiles, qualifier le signal et préci
 
 ## Vérifications existantes
 
-Les [six tests Python](../mini_siem/test_detection.py) vérifient des motifs SQLi/XSS avec exemples négatifs, les variantes d'adresse locale, l'extraction des paramètres, le seuil d'échecs et la stabilité du score. Le curseur SQL et la connexion sont simulés : ces tests ne prouvent pas l'intégration avec un serveur MySQL, une application PHP en fonctionnement ou toute la console.
+Les [six tests historiques](../mini_siem/test_detection.py) et [douze tests de régression](../tests/test_regressions.py) vérifient les règles et les cas négatifs, la cotation commune PHP/Python, le masquage et la rotation. Ces tests unitaires utilisent des doubles de base de données : ils ne prouvent pas l'intégration à eux seuls.
+
+Les [17 vérifications d'intégration](../tests/integration_lab.py) distinctes utilisent PHP, MariaDB et le moteur en fonctionnement sous Docker. Elles couvrent notamment les réponses HTTP, les données conservées, la session analyste, la protection CSRF et l'historique de qualification. Des requêtes réelles ont aussi été rapprochées des alertes du gestionnaire Wazuh. Les preuves et les limites figurent dans le bilan ; cela ne mesure pas toute la console, un taux de faux positifs ou une performance de production.
 
 Les [captures de juin 2026](media/README.md) et le [rapport collectif](Rapport_Mini_SOC_Web.pdf) documentent la démonstration historique. Cette lecture ne constitue pas une nouvelle mesure de taux de détection, de faux positifs ou de performance.
 

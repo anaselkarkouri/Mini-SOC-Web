@@ -1,0 +1,76 @@
+name: minisoc-lab
+services:
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MINISOC_ROOT_PASSWORD:?prepare .env}
+      MINISOC_WEB_PASSWORD: ${MINISOC_WEB_PASSWORD:?prepare .env}
+      MINISOC_COLLECTOR_PASSWORD: ${MINISOC_COLLECTOR_PASSWORD:?prepare .env}
+      MINISOC_SIEM_PASSWORD: ${MINISOC_SIEM_PASSWORD:?prepare .env}
+      MINISOC_SOC_PASSWORD: ${MINISOC_SOC_PASSWORD:?prepare .env}
+    volumes:
+      - database:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./docker/02-users.sh:/docker-entrypoint-initdb.d/02-users.sh:ro
+    networks: [lab]
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports: ["127.0.0.1:8086:80"]
+    environment:
+      MINISOC_DB_HOST: db
+      MINISOC_DB_NAME: minisoc_shop
+      MINISOC_WEB_DB_USER: minisoc_web
+      MINISOC_WEB_DB_PASSWORD: ${MINISOC_WEB_PASSWORD}
+      MINISOC_COLLECTOR_DB_USER: minisoc_collector
+      MINISOC_COLLECTOR_DB_PASSWORD: ${MINISOC_COLLECTOR_PASSWORD}
+      MINISOC_SOC_DB_USER: minisoc_soc
+      MINISOC_SOC_DB_PASSWORD: ${MINISOC_SOC_PASSWORD}
+      MINISOC_SOC_PASSWORD_HASH: ${MINISOC_SOC_PASSWORD_HASH:?prepare hash}
+      MINISOC_TRUSTED_NETWORKS: 172.29.23.0/24
+      MINISOC_AUTOSTART_SIEM: "0"
+      MINISOC_HARDENED: ${MINISOC_HARDENED:-0}
+    depends_on:
+      db: {condition: service_healthy}
+    networks: [lab]
+    healthcheck:
+      test: [CMD, php, -r, "exit(file_get_contents('http://127.0.0.1/')===false?1:0);"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  siem:
+    user: ${MINISOC_RUN_UID:-1000}:${MINISOC_RUN_GID:-1000}
+    build:
+      context: .
+      dockerfile: Dockerfile.siem
+    environment:
+      MINISOC_DB_HOST: db
+      MINISOC_DB_NAME: minisoc_shop
+      MINISOC_SIEM_DB_USER: minisoc_siem
+      MINISOC_SIEM_DB_PASSWORD: ${MINISOC_SIEM_PASSWORD}
+      MINISOC_EVENT_LOG: /runtime/events.ndjson
+      MINISOC_POLL_SECONDS: "2"
+    volumes: ["./runtime:/runtime"]
+    depends_on:
+      db: {condition: service_healthy}
+    networks: [lab]
+  zap:
+    user: ${MINISOC_RUN_UID:-1000}:${MINISOC_RUN_GID:-1000}
+    build:
+      context: .
+      dockerfile: Dockerfile.zap
+    profiles: [audit]
+    volumes: ["./runtime/zap:/zap/wrk:rw", "./integrations/zap:/zap/plans:ro"]
+    networks: [lab]
+networks:
+  lab:
+    ipam:
+      config: [{subnet: 172.29.23.0/24}]
+volumes:
+  database:

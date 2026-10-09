@@ -1,4 +1,5 @@
 <?php
+define('MINISOC_DB_ROLE', 'SOC');
 function soc_start_secure_session(): void
 {
     if (session_status() !== PHP_SESSION_NONE) {
@@ -751,27 +752,11 @@ function soc_verify_post_csrf(): bool
     return soc_verify_csrf($_POST['csrf'] ?? null);
 }
 
-function soc_login_table(): void
-{
-    static $done = false;
-    if ($done) {
-        return;
-    }
-    $done = true;
-    db_query(
-        "CREATE TABLE IF NOT EXISTS soc_login_attempts (
-            ip_hash VARCHAR(64) NOT NULL PRIMARY KEY,
-            attempts INT NOT NULL DEFAULT 0,
-            last_attempt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            locked_until DATETIME NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
-    );
-}
+function soc_login_table(): void { /* Tables préparées par le schéma ou la migration. */ }
 
 function soc_login_key(): string
 {
-    $agent = substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 180);
-    return hash('sha256', soc_client_ip() . '|' . $agent);
+    return hash('sha256', soc_client_ip() . '|' . SOC_LOGIN_USERNAME);
 }
 
 function soc_login_lock_remaining(): int
@@ -930,21 +915,7 @@ function soc_db_execute(string $sql, string $types, array $params): bool
     return $ok;
 }
 
-function soc_ensure_reads_table(): void
-{
-    static $done = false;
-    if ($done) {
-        return;
-    }
-    $done = true;
-
-    db_query(
-        "CREATE TABLE IF NOT EXISTS soc_alert_reads (
-            alert_id INT NOT NULL PRIMARY KEY,
-            read_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
-    );
-}
+function soc_ensure_reads_table(): void { /* Tables préparées par le schéma ou la migration. */ }
 
 function soc_mark_alert_read(int $id): void
 {
@@ -1113,6 +1084,12 @@ function soc_launch_siem_process(): array
 
 function soc_ensure_siem_running(): array
 {
+    if (getenv('MINISOC_AUTOSTART_SIEM') !== '1') {
+        $health = soc_db_one('SELECT last_cycle FROM siem_health WHERE id=1');
+        $live = $health && (time() - strtotime($health['last_cycle'].' UTC')) < 35;
+        return ['running'=>(bool)$live,'started'=>false,'pid'=>0,
+            'message'=>$live ? 'Service Mini-SIEM actif' : 'Démarrer le service Mini-SIEM séparément'];
+    }
     $lockHandle = fopen(soc_siem_lock_file(), 'c');
     if ($lockHandle === false) {
         $pid = soc_siem_current_pid();
@@ -1363,16 +1340,26 @@ function soc_fetch_latest_alert(?array $filters = null, bool $activeOnly = false
     return soc_display_alert(soc_apply_read_state([$alert])[0] ?? $alert);
 }
 
-function soc_update_alert_status(int $id, string $status): bool
-{
-    if ($id <= 0 || !array_key_exists($status, SOC_STATUSES) || $status === 'all') {
-        return false;
-    }
-    $updated = soc_db_execute("UPDATE alerts SET status = ? WHERE id = ?", 'si', [$status, $id]);
-    if ($updated) {
-        soc_recalculate_threat_score();
-    }
-    return $updated;
+function soc_update_alert_status(int $id, string $status): bool {
+    global $conn;
+    $note=trim((string)($_POST['note'] ?? ''));
+    if ($id<=0 || !array_key_exists($status,SOC_STATUSES) || $status==='all' || strlen($note)>1000) return false;
+    if (in_array($status,['resolu','faux_positif'],true) && strlen($note)<5) return false;
+    if ($note==='') $note='Statut mis à jour; qualification à compléter dans la fiche.';
+    mysqli_begin_transaction($conn);
+    try {
+        $before=soc_db_one('SELECT status FROM alerts WHERE id=? FOR UPDATE','i',[$id]);
+        if (!$before) { mysqli_rollback($conn);return false; }
+        if (!soc_db_execute('UPDATE alerts SET status=? WHERE id=?','si',[$status,$id])) {
+            mysqli_rollback($conn);return false;
+        }
+        $actor=(string)(soc_current_user()['username'] ?? 'admin');
+        if (!soc_db_execute('INSERT INTO alert_audit (alert_id,changed_at,actor,old_status,new_status,note)
+            VALUES (?,UTC_TIMESTAMP(),?,?,?,?)','issss',[$id,$actor,$before['status'],$status,$note])) {
+            mysqli_rollback($conn);return false;
+        }
+        mysqli_commit($conn);soc_recalculate_threat_score();return true;
+    } catch (Throwable $e) { mysqli_rollback($conn);return false; }
 }
 
 function soc_score_level(int $score): string
@@ -1419,12 +1406,15 @@ function soc_current_threat_score(): array
     $ipCounts = [];
     $details = [];
     foreach ($rows as $row) {
+        $sourceIp = (string)($row['source_ip'] ?? '');
+        $ipCounts[$sourceIp] = ($ipCounts[$sourceIp] ?? 0) + (int)($row['nb'] ?? 0);
+    }
+    foreach ($rows as $row) {
         $attackType = (string)($row['attack_type'] ?? '');
         $sourceIp = (string)($row['source_ip'] ?? '');
         $count = (int)($row['nb'] ?? 0);
         $base = soc_attack_score_points($attackType);
 
-        $ipCounts[$sourceIp] = ($ipCounts[$sourceIp] ?? 0) + $count;
         $multiplier = $ipCounts[$sourceIp] >= 3 ? 2 : 1;
         $points = $base * $count * $multiplier;
         $score += $points;
@@ -1441,7 +1431,7 @@ function soc_current_threat_score(): array
 function soc_recalculate_threat_score(): void
 {
     $current = soc_current_threat_score();
-    $previous = soc_db_one("SELECT COALESCE(MAX(score_total), 0) AS total FROM threat_score");
+    $previous = soc_db_one("SELECT COALESCE(SUM(CASE WHEN attack_type='SQL Injection' THEN 15 WHEN attack_type='Cross-Site Scripting' THEN 10 WHEN attack_type LIKE 'Brute%' THEN 8 ELSE 5 END),0) AS total FROM alerts");
     soc_db_execute(
         "INSERT INTO threat_score (timestamp, score_global, niveau, detail, score_total)
          VALUES (NOW(), ?, ?, ?, ?)",
@@ -1599,7 +1589,7 @@ function soc_enrich_alert(array $alert): array
 
     $alert['attack_label'] = soc_attack_label((string)($alert['attack_type'] ?? ''));
     $alert['attack_key'] = $key;
-    $alert['triggered_rule'] = $alert['description'] ?: ($alert['attack_label'] . ' détectée par Mini-SIEM');
+    $alert['triggered_rule'] = ($alert['rule_id'] ?? 'legacy').' / '.($alert['rule_version'] ?? 'legacy').' : '.($alert['description'] ?? 'Signal à examiner');
     return $alert;
 }
 
@@ -1781,7 +1771,7 @@ function soc_render_trend_svg(array $trend): string
 function soc_detection_status(): array
 {
     $currentScore = soc_current_threat_score();
-    $latestScore = soc_db_one("SELECT * FROM threat_score ORDER BY timestamp DESC, id DESC LIMIT 1");
+    $latestScore = soc_db_one("SELECT last_cycle AS timestamp FROM siem_health WHERE id=1");
     $latestAlert = soc_db_one(
         "SELECT *
          FROM alerts

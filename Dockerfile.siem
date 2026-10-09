@@ -1,0 +1,10 @@
+FROM python:3.12-slim-bookworm
+WORKDIR /app
+COPY mini_siem/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+COPY mini_siem /app/mini_siem
+COPY tests /app/tests
+COPY scripts /app/scripts
+ENV PYTHONUNBUFFERED=1 MINISOC_INTERNAL_LOG=/runtime/siem.log
+USER 1000:1000
+CMD ["python","mini_siem/mini_siem.py"]

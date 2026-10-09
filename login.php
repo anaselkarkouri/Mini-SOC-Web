@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Connexion';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/helpers.php';
 require_once __DIR__ . '/includes/logger.php';
 log_http_request();
 
@@ -17,12 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             WHERE username = '$username' AND password = '$password'
             LIMIT 1";
 
-    $userRow = db_one($sql);
+    $userRow = MINISOC_HARDENED
+        ? (db_prepared_rows('SELECT id,username,full_name,email,role FROM users WHERE username=? AND password=? LIMIT 1', 'ss', [$username,$password])[0] ?? null)
+        : db_one($sql);
 
     if ($userRow) {
+        if (MINISOC_HARDENED) session_regenerate_id(true);
         $_SESSION['user'] = $userRow;
         http_response_code(200);
         $next = $_GET['next'] ?? 'account.php';
+        if (MINISOC_HARDENED && !preg_match('/^[a-z_]+\.php(?:\?[^\r\n]*)?$/D', $next)) $next = 'account.php';
         header('Location: ' . $next);
         exit;
     }
@@ -31,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     http_response_code(401);
     $error = 'Identifiants incorrects.';
 }
+require_once __DIR__ . '/includes/header.php';
 ?>
 <section class="page-title">
     <div class="container">

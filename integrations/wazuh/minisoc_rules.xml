@@ -1,0 +1,30 @@
+<!-- Règles indépendantes sur les champs JSON assainis; numéros réservés au lab. -->
+<group name="minisoc_lab,">
+  <rule id="110100" level="0">
+    <decoded_as>json</decoded_as>
+    <field name="app">^minisoc-web$</field>
+    <description>Mini-SOC: événement HTTP de laboratoire</description>
+  </rule>
+  <rule id="110101" level="8">
+    <if_sid>110100</if_sid>
+    <field name="parameters" type="pcre2">(?i)(?:\bOR\s+1\s*=\s*1\b|\bUNION\s+SELECT\b)</field>
+    <description>Mini-SOC: tentative SQLi à examiner, event_id=$(event_id)</description>
+  </rule>
+  <rule id="110102" level="7">
+    <if_sid>110100</if_sid>
+    <field name="parameters" type="pcre2">(?i)\x3cscript\b</field>
+    <description>Mini-SOC: motif XSS à examiner, event_id=$(event_id)</description>
+  </rule>
+  <rule id="110103" level="1">
+    <if_sid>110100</if_sid>
+    <url>^/login.php$</url>
+    <field name="http_method">^POST$</field>
+    <field name="response_code">^401$|^403$</field>
+    <description>Mini-SOC: échec de connexion</description>
+  </rule>
+  <rule id="110104" level="8" frequency="5" timeframe="60">
+    <if_matched_sid>110103</if_matched_sid>
+    <same_field>src_ip</same_field>
+    <description>Mini-SOC: échecs répétés de connexion, même source</description>
+  </rule>
+</group>

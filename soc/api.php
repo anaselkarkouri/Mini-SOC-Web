@@ -22,7 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 
     $id = (int)($_POST['id'] ?? 0);
     $status = (string)($_POST['status'] ?? '');
-    soc_update_alert_status($id, $status);
+    if (!soc_update_alert_status($id, $status)) {
+        http_response_code(400);
+        echo json_encode(['error'=>'Mise à jour refusée: identifiant, statut ou justification invalide.']);
+        exit;
+    }
 
     $runner = soc_ensure_siem_running();
     $payload = soc_dashboard_payload($filters, $id);
