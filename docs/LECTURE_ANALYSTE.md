@@ -44,4 +44,6 @@ Les [captures de juin 2026](media/README.md) et le [rapport collectif](Rapport_M
 
 ## Trame pour un compte rendu d'alerte
 
+Deux exemples renseignés à partir des traces conservées du laboratoire sont disponibles : [échecs de connexion](investigations/SOC-01_echecs_connexion.md) et [tentative SQLi avec examen des retests](investigations/SOC-02_tentative_SQLi.md). Leur [guide commun](investigations/README.md) précise les sources, la portée et les étapes pour reprendre personnellement l'analyse. Ils ne constituent pas de nouveaux incidents ou de nouvelles campagnes de tests opérationnels.
+
 Pour reprendre un exercice, renseigner : date et périmètre, source de l'événement, règle déclenchée, observations confirmées, hypothèses, éléments manquants, qualification proposée, recommandation et critère de clôture. Garder séparées la détection d'un motif, la preuve d'exploitation et l'action réellement réalisée.

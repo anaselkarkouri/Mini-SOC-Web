@@ -1,0 +1,229 @@
+{
+  "schema": "minisoc.case-evidence.v1",
+  "extracted_at_utc": "2026-10-10T14:33:39.356410+00:00",
+  "kind": "Extrait de traces réelles du laboratoire; requêtes contrôlées du 9 octobre 2026.",
+  "marker": "wazuh-lab-1791568951352758124",
+  "events": [
+    {
+      "app": "minisoc-web",
+      "event_id": "a00c50e7ea12edae3d69a02da7b161eb",
+      "event_time": "2026-10-09T18:02:31Z",
+      "src_ip": "172.29.23.1",
+      "http_method": "GET",
+      "url": "/search.php",
+      "response_code": 200,
+      "parameters": "wazuh-lab-1791568951352758124",
+      "source_record": {
+        "file": "events.ndjson",
+        "line": 47
+      }
+    },
+    {
+      "app": "minisoc-web",
+      "event_id": "4980a0f9e8159b4ea849591df241e21f",
+      "event_time": "2026-10-09T18:02:31Z",
+      "src_ip": "172.29.23.1",
+      "http_method": "GET",
+      "url": "/search.php",
+      "response_code": 200,
+      "parameters": "' OR 1=1 -- wazuh-lab-1791568951352758124",
+      "source_record": {
+        "file": "events.ndjson",
+        "line": 48
+      }
+    },
+    {
+      "app": "minisoc-web",
+      "event_id": "8595aeeecc3aaabe6c769638119dba52",
+      "event_time": "2026-10-09T18:02:31Z",
+      "src_ip": "172.29.23.1",
+      "http_method": "GET",
+      "url": "/search.php",
+      "response_code": 200,
+      "parameters": "<script>alert(\"wazuh-lab-1791568951352758124\")</script>",
+      "source_record": {
+        "file": "events.ndjson",
+        "line": 49
+      }
+    },
+    {
+      "app": "minisoc-web",
+      "event_id": "2a72386aa819d629e023673080adb2ce",
+      "event_time": "2026-10-09T18:02:31Z",
+      "src_ip": "172.29.23.1",
+      "http_method": "POST",
+      "url": "/login.php",
+      "response_code": 401,
+      "parameters": "wazuh-lab-1791568951352758124 [REDACTED]",
+      "source_record": {
+        "file": "events.ndjson",
+        "line": 50
+      }
+    },
+    {
+      "app": "minisoc-web",
+      "event_id": "b95aea1e705973a3d2a1c00005bac9de",
+      "event_time": "2026-10-09T18:02:31Z",
+      "src_ip": "172.29.23.1",
+      "http_method": "POST",
+      "url": "/login.php",
+      "response_code": 401,
+      "parameters": "wazuh-lab-1791568951352758124 [REDACTED]",
+      "source_record": {
+        "file": "events.ndjson",
+        "line": 51
+      }
+    },
+    {
+      "app": "minisoc-web",
+      "event_id": "4f20fea6e83ab991de122fdd9d32065f",
+      "event_time": "2026-10-09T18:02:31Z",
+      "src_ip": "172.29.23.1",
+      "http_method": "POST",
+      "url": "/login.php",
+      "response_code": 401,
+      "parameters": "wazuh-lab-1791568951352758124 [REDACTED]",
+      "source_record": {
+        "file": "events.ndjson",
+        "line": 52
+      }
+    },
+    {
+      "app": "minisoc-web",
+      "event_id": "35bf2d77911e68fefdceea8ce30b249b",
+      "event_time": "2026-10-09T18:02:31Z",
+      "src_ip": "172.29.23.1",
+      "http_method": "POST",
+      "url": "/login.php",
+      "response_code": 401,
+      "parameters": "wazuh-lab-1791568951352758124 [REDACTED]",
+      "source_record": {
+        "file": "events.ndjson",
+        "line": 53
+      }
+    },
+    {
+      "app": "minisoc-web",
+      "event_id": "0682e1386dba41638dad3198bf2dc6ef",
+      "event_time": "2026-10-09T18:02:31Z",
+      "src_ip": "172.29.23.1",
+      "http_method": "POST",
+      "url": "/login.php",
+      "response_code": 401,
+      "parameters": "wazuh-lab-1791568951352758124 [REDACTED]",
+      "source_record": {
+        "file": "events.ndjson",
+        "line": 54
+      }
+    }
+  ],
+  "wazuh_alerts": [
+    {
+      "timestamp": "2026-10-09T18:02:34.438+0000",
+      "alert_id": "1791568954.1254736",
+      "rule": {
+        "id": "110102",
+        "level": 7,
+        "description": "Mini-SOC: motif XSS à examiner, event_id=8595aeeecc3aaabe6c769638119dba52",
+        "firedtimes": 3
+      },
+      "event_id": "8595aeeecc3aaabe6c769638119dba52",
+      "location": "/home/labgrc/minisoc-20261009/runtime/events.ndjson",
+      "previous_output_events": []
+    },
+    {
+      "timestamp": "2026-10-09T18:02:34.438+0000",
+      "alert_id": "1791568954.1257080",
+      "rule": {
+        "id": "110101",
+        "level": 8,
+        "description": "Mini-SOC: tentative SQLi à examiner, event_id=4980a0f9e8159b4ea849591df241e21f",
+        "firedtimes": 1
+      },
+      "event_id": "4980a0f9e8159b4ea849591df241e21f",
+      "location": "/home/labgrc/minisoc-20261009/runtime/events.ndjson",
+      "previous_output_events": []
+    },
+    {
+      "timestamp": "2026-10-09T18:02:34.439+0000",
+      "alert_id": "1791568954.1255447",
+      "rule": {
+        "id": "110104",
+        "level": 8,
+        "description": "Mini-SOC: échecs répétés de connexion, même source",
+        "firedtimes": 1
+      },
+      "event_id": "35bf2d77911e68fefdceea8ce30b249b",
+      "location": "/home/labgrc/minisoc-20261009/runtime/events.ndjson",
+      "previous_output_events": [
+        {
+          "app": "minisoc-web",
+          "event_id": "4f20fea6e83ab991de122fdd9d32065f",
+          "event_time": "2026-10-09T18:02:31Z",
+          "src_ip": "172.29.23.1",
+          "http_method": "POST",
+          "url": "/login.php",
+          "response_code": 401,
+          "parameters": "wazuh-lab-1791568951352758124 [REDACTED]"
+        },
+        {
+          "app": "minisoc-web",
+          "event_id": "0682e1386dba41638dad3198bf2dc6ef",
+          "event_time": "2026-10-09T18:02:31Z",
+          "src_ip": "172.29.23.1",
+          "http_method": "POST",
+          "url": "/login.php",
+          "response_code": 401,
+          "parameters": "wazuh-lab-1791568951352758124 [REDACTED]"
+        },
+        {
+          "app": "minisoc-web",
+          "event_id": "b95aea1e705973a3d2a1c00005bac9de",
+          "event_time": "2026-10-09T18:02:31Z",
+          "src_ip": "172.29.23.1",
+          "http_method": "POST",
+          "url": "/login.php",
+          "response_code": 401,
+          "parameters": "wazuh-lab-1791568951352758124 [REDACTED]"
+        },
+        {
+          "app": "minisoc-web",
+          "event_id": "2a72386aa819d629e023673080adb2ce",
+          "event_time": "2026-10-09T18:02:31Z",
+          "src_ip": "172.29.23.1",
+          "http_method": "POST",
+          "url": "/login.php",
+          "response_code": 401,
+          "parameters": "wazuh-lab-1791568951352758124 [REDACTED]"
+        }
+      ]
+    }
+  ],
+  "source_files": {
+    "ndjson": [
+      {
+        "file": "events.ndjson",
+        "sha256": "65397e9ad4b5e574376d8bbae9b64b9d2337e79c73d6c314d0d01654c4b95bc9"
+      }
+    ],
+    "wazuh": [
+      {
+        "file": "2026/Oct/ossec-alerts-09.json",
+        "sha256": "a589a68da5fa3ae6150f5c4a5da417b36fe22ea8da03f9c27d4a7229bf1935a8"
+      }
+    ]
+  },
+  "export_occurrences_by_event_id": {
+    "a00c50e7ea12edae3d69a02da7b161eb": 1,
+    "4980a0f9e8159b4ea849591df241e21f": 1,
+    "8595aeeecc3aaabe6c769638119dba52": 1,
+    "2a72386aa819d629e023673080adb2ce": 1,
+    "b95aea1e705973a3d2a1c00005bac9de": 1,
+    "4f20fea6e83ab991de122fdd9d32065f": 1,
+    "35bf2d77911e68fefdceea8ce30b249b": 1,
+    "0682e1386dba41638dad3198bf2dc6ef": 1
+  },
+  "selection": "Marqueur retrouvé à partir des trois event_id publiés dans wazuh-results.json.",
+  "scope": "Gestionnaire Wazuh local seul; aucune infrastructure entreprise, aucun secret réel.",
+  "excluded": "full_log, cookies, mots de passe, clés et autres événements du laboratoire."
+}

@@ -79,6 +79,7 @@ Les champs usuels de secrets sont masqués avant stockage et export, sans garant
 Le verrou MariaDB évite des cycles concurrents ; le dernier cycle est suivi dans `siem_health`. Le score pédagogique utilise la même formule PHP/Python ; ce n'est pas une cotation GRC du risque. Le mapping ATT&CK reste conditionnel : un motif XSS ne prouve pas une exécution JavaScript. Toutes les heuristiques du JSON historique ne sont pas implémentées. Aucun taux de détection, SLA ou résultat de production n'est annoncé.
 
 - [Lecture analyste](docs/LECTURE_ANALYSTE.md)
+- [Deux comptes rendus d'investigation : échecs de connexion et tentative SQLi](docs/investigations/README.md)
 - [Rapport collectif historique, 75 pages](docs/Rapport_Mini_SOC_Web.pdf)
 - [Captures originales de juin 2026](docs/media/README.md)
 
