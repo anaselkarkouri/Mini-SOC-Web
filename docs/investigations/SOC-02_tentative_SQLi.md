@@ -1,9 +1,9 @@
 # SOC-02 - Qualification d'une tentative SQLi et examen des corrections
 
-**Périmètre :** recherche de la boutique fictive, laboratoire local dédié.  
-**Traces :** 9 octobre 2026 ; horodatages UTC.  
-**Compte rendu :** 10 octobre 2026, préparé avec assistance d'outils IA à partir des pièces conservées.  
-**État :** analyse documentaire de l'exercice terminée ; aucun incident d'entreprise déclaré.
+- **Périmètre :** recherche de la boutique fictive, laboratoire local dédié.
+- **Traces :** 9 octobre 2026 ; horodatages UTC.
+- **Compte rendu :** 10 octobre 2026, préparé avec assistance d'outils IA à partir des pièces conservées.
+- **État :** analyse documentaire de l'exercice terminée ; aucun incident d'entreprise déclaré.
 
 ## 1. Résumé
 

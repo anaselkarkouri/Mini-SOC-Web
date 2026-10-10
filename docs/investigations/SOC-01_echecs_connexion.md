@@ -1,9 +1,9 @@
 # SOC-01 - Qualification d'échecs de connexion répétés
 
-**Périmètre :** boutique fictive du Mini-SOC, laboratoire local dédié.  
-**Traces :** 9 octobre 2026 ; horodatages UTC.  
-**Compte rendu :** 10 octobre 2026, préparé avec assistance d'outils IA à partir des pièces conservées.  
-**État :** analyse documentaire de l'exercice terminée ; aucun incident d'entreprise déclaré.
+- **Périmètre :** boutique fictive du Mini-SOC, laboratoire local dédié.
+- **Traces :** 9 octobre 2026 ; horodatages UTC.
+- **Compte rendu :** 10 octobre 2026, préparé avec assistance d'outils IA à partir des pièces conservées.
+- **État :** analyse documentaire de l'exercice terminée ; aucun incident d'entreprise déclaré.
 
 ## 1. Résumé
 
