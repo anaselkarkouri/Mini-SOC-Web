@@ -1,6 +1,6 @@
 # Lire le Mini-SOC du point de vue de l'analyste
 
-Ce projet collectif EMSI relie des requêtes HTTP, des événements, des règles Python et un tableau de bord SOC. Il s'agit d'un laboratoire web de démonstration, pas d'un SOC de production. Les extensions d'octobre 2026 ajoutent qualification tracée, intégration Wazuh et retests ciblés ; le [bilan de validation](VALIDATION_20261009.md) sépare leurs résultats de la démonstration historique.
+Ce projet collectif EMSI relie des requêtes HTTP, des événements, des règles Python et un tableau de bord SOC. Il s'agit d'un laboratoire web de démonstration, pas d'un SOC de production. La qualification tracée, l'intégration Wazuh et les retests ciblés sont documentés dans le [bilan de validation](VALIDATION_20261009.md), qui distingue les résultats des tests de la démonstration historique.
 
 ## Le parcours d'un signal
 

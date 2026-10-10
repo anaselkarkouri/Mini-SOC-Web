@@ -1,6 +1,6 @@
 # Mini-SOC Web - Détection, qualification et corrections ciblées
 
-Projet collectif EMSI 2025-2026, complété en octobre 2026 par des extensions de laboratoire préparées avec assistance d'outils IA. Une boutique fictive relie collecte HTTP, règles Python, console SOC et gestionnaire Wazuh.
+Projet collectif EMSI 2025-2026, réalisé dans un environnement de laboratoire. Une boutique fictive relie collecte HTTP, règles Python, console SOC et gestionnaire Wazuh.
 
 **PHP · MariaDB · Python · Docker Compose · Wazuh · OWASP ZAP · MITRE ATT&CK**
 
@@ -84,4 +84,4 @@ Le verrou MariaDB évite des cycles concurrents ; le dernier cycle est suivi dan
 
 ## Équipe et attribution
 
-**Anas El Karkouri, Omar Babba, Ilyas Ajelyan, Fadoua El-Allagui, Omar Gaga.** Encadrement : **Ismail Ait Lasri**, EMSI. Le rapport précise la répartition collective initiale. Les extensions d'octobre 2026 ne sont pas attribuées rétroactivement à chaque membre. Le dépôt constitue un support de pratique et d'explication en entretien.
+**Anas El Karkouri, Omar Babba, Ilyas Ajelyan, Fadoua El-Allagui, Omar Gaga.** Encadrement : **Ismail Ait Lasri**, EMSI. Le rapport précise la répartition collective initiale. Certains composants et leur documentation ont été préparés avec assistance d'outils IA. Les évolutions du dépôt ne sont pas attribuées rétroactivement à chaque membre. Le dépôt constitue un support de pratique et d'explication en entretien.

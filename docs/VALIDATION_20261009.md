@@ -1,8 +1,8 @@
-# Validation des extensions Mini-SOC - 9 octobre 2026
+# Validation du Mini-SOC - 9 octobre 2026
 
 ## Périmètre et conclusion
 
-La base est le projet collectif EMSI 2025-2026, commit `57c885a`. Les extensions d'octobre ont été préparées avec assistance d'outils IA, puis exécutées dans un laboratoire Ubuntu dédié avec des données fictives. Elles améliorent la reproductibilité, la détection, la qualification et les preuves de correction. Le dépôt reste un terrain d'exercice volontairement vulnérable. Il ne démontre ni un SOC de production ni une maîtrise personnelle de tous les outils.
+La base est le projet collectif EMSI 2025-2026, commit `57c885a`. Des composants complémentaires ont été préparés avec assistance d'outils IA, puis exécutés dans un laboratoire Ubuntu dédié avec des données fictives. Ils améliorent la reproductibilité, la détection, la qualification et les preuves de correction. Le dépôt reste un terrain d'exercice volontairement vulnérable. Il ne démontre ni un SOC de production ni une maîtrise personnelle de tous les outils.
 
 Le parcours réellement exercé est : requête HTTP -> PHP -> MariaDB -> moteur Python -> console SOC / NDJSON -> gestionnaire Wazuh. Le scan ZAP vise uniquement la recherche de la boutique locale. Les résultats ci-dessous sont des observations de laboratoire, et non des résultats sur l'infrastructure d'une entreprise.
 
@@ -40,7 +40,7 @@ Les tests unitaires sont relançables avec les commandes du README. La CI exécu
 5. L'historique est protégé par les droits applicatifs, mais l'administrateur MariaDB peut le modifier. Il n'est pas immuable.
 6. Le mapping MITRE ATT&CK est indicatif : un motif XSS ne prouve pas l'exécution de JavaScript, et une tentative n'est pas une compromission démontrée.
 7. Le mode corrigé reste pédagogique : mots de passe clients fictifs en clair et autres vulnérabilités résiduelles. Les sept catégories ZAP restantes incluent CSP, clickjacking, informations serveur, en-têtes et observations de session/attribut HTML. L'absence des deux alertes ciblées ne signifie pas que l'application est sécurisée globalement.
-8. Les captures du README et le rapport collectif sont historiques (juin 2026). Les preuves JSON datent des extensions d'octobre ; aucune capture historique n'est présentée comme une preuve du nouvel essai.
+8. Les captures du README et le rapport collectif sont historiques (juin 2026). Les preuves JSON proviennent des tests de laboratoire documentés ici ; aucune capture historique n'est présentée comme une preuve du nouvel essai.
 
 ## Sources de conception
 
@@ -50,4 +50,4 @@ Les tests unitaires sont relançables avec les commandes du README. La CI exécu
 - [ZAP Automation Framework](https://www.zaproxy.org/docs/desktop/addons/automation-framework/job-ascan/) : règles actives et limites du plan.
 - [Wazuh : syntaxe des règles](https://documentation.wazuh.com/current/user-manual/ruleset/ruleset-xml-syntax/rules.html) : champs, corrélation et fenêtre de temps.
 
-L'équipe initiale et l'encadrement sont conservés dans le README et le rapport. Pour réutiliser ce projet sur un CV, annoncer un projet collectif de laboratoire avec extensions documentées, sans résultat de production ni attribution exclusive du travail collectif.
+L'équipe initiale et l'encadrement sont conservés dans le README et le rapport. Pour réutiliser ce projet sur un CV, annoncer un projet collectif de laboratoire avec tests documentés, sans résultat de production ni attribution exclusive du travail collectif.
