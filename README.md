@@ -4,6 +4,18 @@ Projet collectif EMSI 2025-2026, réalisé dans un environnement de laboratoire.
 
 **PHP · MariaDB · Python · Docker Compose · Wazuh · OWASP ZAP · MITRE ATT&CK**
 
+
+[Lecture analyste](docs/LECTURE_ANALYSTE.md) · [Deux investigations SOC](docs/investigations/README.md) · [Preuves de validation](docs/VALIDATION_20261009.md) · [English overview](docs/OVERVIEW_EN.md)
+
+## Ce que le projet démontre
+
+- Relier la collecte HTTP aux détections Python, à la qualification et aux événements Wazuh.
+- Distinguer une navigation témoin, une tentative SQLi/XSS et des échecs de connexion corrélés.
+- Documenter deux investigations de laboratoire avec chronologie, preuves, conclusion et informations manquantes.
+- Comparer les résultats HTTP/ZAP avant et après des corrections ciblées ; les vulnérabilités résiduelles sont décrites dans le bilan.
+
+Les résultats concernent le laboratoire collectif et ses scénarios documentés. Le mapping MITRE ATT&CK est indicatif.
+
 ![Dashboard de la démonstration collective de juin 2026](docs/media/dashboard.png)
 
 ## Chaîne et objectifs
